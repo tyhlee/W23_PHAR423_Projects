@@ -16,7 +16,7 @@ df <- read_csv("ist_dataset.csv")
 
 #--------CREATE DATAFRAME--------
 #Filter for DALIVE (only interested in patients that were discharged alive --> n=10322)
-#Change to factors for imputation MCAR
+#Change to factors for imputation MAR
 df1 <- df %>%
   filter(DALIVE == "Y") %>%
   mutate(sex.factor = as.factor(SEX)) %>%
