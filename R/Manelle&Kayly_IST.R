@@ -10,26 +10,26 @@ library(survminer)
 library(broom)
 
 #Trial data
-df <- read_csv("ist_dataset.csv") 
-  
-  
+df <- read_csv("ist_dataset.csv")
+
+
 
 #--------CREATE DATAFRAME--------
 #Filter for DALIVE (only interested in patients that were discharged alive --> n=10322)
 #Change to factors for imputation MCAR
-df1 <- df %>% 
+df1 <- df %>%
   filter(DALIVE == "Y") %>%
-  mutate(sex.factor = as.factor(SEX)) %>% 
-  mutate(fdead = as.factor(FDEAD))  %>% 
-  mutate(stype = as.factor(STYPE)) %>% 
-  mutate(dplace = as.factor(DPLACE)) %>% 
+  mutate(sex.factor = as.factor(SEX)) %>%
+  mutate(fdead = as.factor(FDEAD))  %>%
+  mutate(stype = as.factor(STYPE)) %>%
+  mutate(dplace = as.factor(DPLACE)) %>%
   mutate(dplace_b = ifelse(dplace == "B", 1, 0)) %>%                                          #dumbify variables w/ DPLACE A (home) as reference level
-  mutate(dplace_c = ifelse(dplace == "C", 1, 0)) %>% 
-  mutate(dplace_d = ifelse(dplace == "D", 1, 0)) %>% 
-  mutate(dplace_e = ifelse(dplace == "E", 1, 0)) %>% 
-  mutate(CNTRYNUM = as.factor(CNTRYNUM)) %>% 
-  rename(age = AGE) %>% 
-  rename(rsbp = RSBP) %>% 
+  mutate(dplace_c = ifelse(dplace == "C", 1, 0)) %>%
+  mutate(dplace_d = ifelse(dplace == "D", 1, 0)) %>%
+  mutate(dplace_e = ifelse(dplace == "E", 1, 0)) %>%
+  mutate(CNTRYNUM = as.factor(CNTRYNUM)) %>%
+  rename(age = AGE) %>%
+  rename(rsbp = RSBP) %>%
   select(sex.factor, age, rsbp, stype, dplace, fdead, CNTRYNUM, TD, EXPDD, EXPD6, EXPD14,dplace_b, dplace_c, dplace_d, dplace_e)
 
 
@@ -39,17 +39,17 @@ df1$num_missing <- apply(df1,1,FUN = function(each_row){sum(is.na(each_row))})
 
 apply(df1,2,FUN = function(each_col){sum(is.na(each_col))})
 
-df1_complete <- df1 %>% 
-  filter(num_missing<=0) %>% 
+df1_complete <- df1 %>%
+  filter(num_missing<=0) %>%
   select(-num_missing) %>%                                                                    #Calculate number of people with missing covariate values
   filter(dplace == "A" | dplace == "B" | dplace == "C" | dplace == "D" | dplace == "E" ) %>%  #Calculate number of people with known specified discharge destinations
   filter(fdead == "N" | fdead == "Y") %>%                                                     #Calculate number of people with known 6month mortality status
   mutate(dplace_b = ifelse(dplace == "B", 1, 0)) %>%                                          #dumbify variables w/ DPLACE A (home) as reference level
-  mutate(dplace_c = ifelse(dplace == "C", 1, 0)) %>% 
-  mutate(dplace_d = ifelse(dplace == "D", 1, 0)) %>% 
+  mutate(dplace_c = ifelse(dplace == "C", 1, 0)) %>%
+  mutate(dplace_d = ifelse(dplace == "D", 1, 0)) %>%
   mutate(dplace_e = ifelse(dplace == "E", 1, 0)) %>%
-  mutate(fdead = ifelse(fdead == "Y", 1, 0)) %>% 
-  mutate(death = ifelse(fdead == 0, "Alive", "Dead")) %>% 
+  mutate(fdead = ifelse(fdead == "Y", 1, 0)) %>%
+  mutate(death = ifelse(fdead == 0, "Alive", "Dead")) %>%
   mutate(sex = ifelse(sex.factor == "F", 1, 0))
 
 
@@ -66,8 +66,8 @@ df1.imp$OOBerror
 km0 <- survfit(Surv(TD, fdead)~dplace, data = df1_complete)
 
 ggsurvplot(
-  km0, 
-  pval = T, 
+  km0,
+  pval = T,
   size = 0.5,
   censor.shape="*",
   xlab = "Days Elapsed",
@@ -136,20 +136,20 @@ library (finalfit)
 cr1.curve <- surv_adjustedcurves(cr1, data = df1_complete)
 
 #Rename DPLACE Variables
-df1_complete$dplace.tbl <- 
-  factor(df1_complete$dplace, 
+df1_complete$dplace.tbl <-
+  factor(df1_complete$dplace,
          levels=c("A", "B", "C", "D", "E"),
-         labels=c("Home", 
-                  "Relative's Home", 
+         labels=c("Home",
+                  "Relative's Home",
                   "Residential Care",
                   "Nursing Home",
                   "Other Hospital Department"))
 
 #Draw Adjusted PH  Survival Curve
-ggadjustedcurves(cr1, 
+ggadjustedcurves(cr1,
                  pval=TRUE,
-                 data = as.data.frame(df1_complete), 
-                 method = "average", 
+                 data = as.data.frame(df1_complete),
+                 method = "average",
                  variable = "dplace.tbl",
                  xlab = "Days Elapsed",
                  ylab = "Survival Rate",
@@ -165,9 +165,9 @@ library(treemapify)
 library(ggplot2)
 
 #Proportion of Patients w/ 6 month Mortality - sort by discharge destimation
-df1_dead <- df1_complete %>% 
-  select(death,dplace.tbl) %>% 
-  group_by(dplace.tbl, death) %>% 
+df1_dead <- df1_complete %>%
+  select(death,dplace.tbl) %>%
+  group_by(dplace.tbl, death) %>%
   count()
 
 #Generate Treemap
@@ -177,10 +177,10 @@ ggplot2::ggplot(df1_dead, ggplot2::aes(area = n, fill = dplace.tbl, label =paste
   theme(legend.position = "bottom") +
   geom_treemap()
 
------#DESCRIPTIVE STATS---------
+#-----DESCRIPTIVE STATS---------
 
 #Histogram of Age
-hist_age <- ggplot(df1_complete, aes(x = AGE)) + 
+hist_age <- ggplot(df1_complete, aes(x = AGE)) +
   geom_histogram(binwidth = 1, colour="#231076", fill="#B8AAD8") +
   facet_grid(sex ~.) +
   xlab("Age (years)") + ylab("Number of Patients") +
@@ -192,12 +192,12 @@ hist_age + theme(
   axis.title.y = element_text(size=14)
 )
 
-#Patient Characteristics Table  
+#Patient Characteristics Table
 
-library(boot) 
+library(boot)
 library(table1)
 
-df1_complete$sex.tbl <- 
+df1_complete$sex.tbl <-
   factor(df1_complete$sex.factor, levels=c("M", "F"),
          labels=c("Male",
                   "Female"))
